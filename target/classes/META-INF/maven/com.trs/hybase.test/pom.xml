@@ -13,8 +13,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring.version>4.3.9.RELEASE</spring.version>
-    <project.basedir>D:/EclipseWorkspace/hybase.test</project.basedir>
-    <hybase.api.path>J:/trshybaseapi</hybase.api.path>
+    <project.basedir>C:/work/Software/eclipse201912/workspace/hybase.test</project.basedir>
+    <hybase.api.path>C:/work/WorkTools/TRSHybase9.0/trshybaseapi</hybase.api.path>
   </properties>
 
   <dependencies>
@@ -87,6 +87,21 @@
     	<groupId>dom4j</groupId>
     	<artifactId>dom4j</artifactId>
     	<version>1.6.1</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.hadoop</groupId>
+    	<artifactId>hadoop-common</artifactId>
+    	<version>3.2.1</version>
+	</dependency>
+	<dependency>
+    	<groupId>org.apache.hadoop</groupId>
+    	<artifactId>hadoop-mapreduce-client-common</artifactId>
+    	<version>3.2.1</version>
+	</dependency>
+	<dependency>
+    	<groupId>xml-apis</groupId>
+    	<artifactId>xml-apis</artifactId>
+    	<version>1.4.01</version>
 	</dependency>
 	<!-- 本地API -->
 	<dependency>
@@ -180,6 +195,7 @@
     	<scope>system</scope>
     	<systemPath>${hybase.api.path}/log4j/slf4j-api-1.7.7.jar</systemPath>
 	</dependency>
+	<!--  
 	<dependency>
 		<groupId>org.slf4j</groupId>
     	<artifactId>log4j12</artifactId>
@@ -187,6 +203,7 @@
     	<scope>system</scope>
     	<systemPath>${hybase.api.path}/log4j/slf4j-log4j12-1.7.7.jar</systemPath>
 	</dependency>
+	-->
 	<dependency>
 		<groupId>trshybase-api</groupId>
     	<artifactId>trshybase-api</artifactId>

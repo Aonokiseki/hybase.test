@@ -1,5 +1,11 @@
 package com.trs.hybase.test.util;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,34 +17,54 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.trs.hybase.client.TRSConnection;
 import com.trs.hybase.client.TRSException;
+import com.trs.hybase.client.TRSInputRecord;
 import com.trs.hybase.client.TRSRecord;
 import com.trs.hybase.test.bean.Constants;
 import com.trs.hybase.test.pojo.SubDatabase;
 
 public class Tools {
 	private Tools() {}
+	public final static Gson GSON = new Gson();
+	
+	/**
+	 * 根据分区字段值计算所属分区
+	 * @param value
+	 * @param partCount
+	 * @return
+	 */
+	public static int calculatePartNum(String value, int partCount) {
+		byte[] byteStr = value.getBytes(Charset.forName("UTF-8"));
+		int hash = Math.abs(MurmurHash.hash32(ByteBuffer.wrap(byteStr), 0));
+		return hash % partCount;
+	}
+	
+	public static String recordToString(TRSRecord record) throws TRSException {
+		return recordToString(record, false);
+	}
 	/**
 	 * 将TRSRecord对象的每个字段值拼接成一个字符串
 	 * @param record
+	 * @param returnUid
 	 * @return
 	 * @throws TRSException
 	 */
-	public static String recordToString(TRSRecord record) throws TRSException {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Record [");
+	public static String recordToString(TRSRecord record, boolean returnUid) throws TRSException {
 		String[] columnNames = record.getColumnNames();
+		StringBuilder sb = new StringBuilder();
 		String value = null;
-		for(int i=0; i<columnNames.length; i++) {
-			value = record.getString(columnNames[i]);
-			if(value == null) value = "";
-			value = value.substring(0, Math.min(value.length(), 20));
-			sb.append(columnNames[i]).append("=").append(value);
-			if(i < columnNames.length - 1)
-				sb.append(", ");
+		sb.append(System.lineSeparator()).append("<REC>");
+		if(returnUid)
+			sb.append("Uid=").append(record.getUid()).append(System.lineSeparator());
+		for(int j=0; j<columnNames.length; j++) {
+			value = record.getString(columnNames[j]);
+			value = (value != null && !value.isEmpty()) ? value.substring(0, Math.min(value.length(), 30)) : "";
+			sb.append("<").append(columnNames[j]).append(">=").append(value);
 		}
-		sb.append("]");
 		return sb.toString();
 	}
 	/**
@@ -187,5 +213,41 @@ public class Tools {
 			result.put(key, value);
 		}
 		return result;
+	}
+	/**
+	 * 根据指定路径读取json并转换为 List&ltMap&ltString, String&gt&gt
+	 * @param jsonPath
+	 * @param encoding
+	 * @return
+	 * @throws TRSException
+	 * @throws JsonSyntaxException
+	 * @throws JsonIOException
+	 * @throws UnsupportedEncodingException
+	 * @throws FileNotFoundException
+	 */
+	public static List<Map<String,String>> transferJsonToList(String jsonPath, String encoding) 
+			throws TRSException, JsonSyntaxException, JsonIOException, UnsupportedEncodingException, FileNotFoundException{
+		if(encoding == null || encoding.isEmpty())
+			encoding = "utf-8";
+		@SuppressWarnings("unchecked")
+		List<Map<String,String>> jsons = GSON.fromJson(new InputStreamReader(new FileInputStream(jsonPath), encoding), java.util.List.class);
+		return jsons;
+	}
+	/**
+	 * 将 List&ltMap&ltString, String&gt&gt 的测试数据转换为 List&ltTRSInputRecord&gt
+	 * @param testdatas
+	 * @return
+	 * @throws TRSException
+	 */
+	public static List<TRSInputRecord> transferDataToTRSInputRecords(List<Map<String, String>> data) throws TRSException{
+		List<TRSInputRecord> inputRecords = new ArrayList<TRSInputRecord>(data.size());
+		TRSInputRecord inputRecord = null;
+		for(int i=0, size=data.size(); i<size; i++) {
+			inputRecord = new TRSInputRecord();
+			for(Entry<String,String> dataInstance : data.get(i).entrySet())
+				inputRecord.addColumn(dataInstance.getKey(), dataInstance.getValue());
+			inputRecords.add(inputRecord);
+		}
+		return inputRecords;
 	}
 }

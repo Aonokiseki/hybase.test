@@ -4,10 +4,10 @@
 	<appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
-			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level, %msg%n"/>
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%-5level] %C.%M(%L),  %msg%n"/>
 		</Console>
 		<RollingFile name="RollingFile" fileName="./logs/hybase-autotest.log" filePattern="./logs/hybase-autotest-%d{yyyy-MM-dd}-%i.log.gz">
-			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level, %msg%n"/>
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%-5level] %C.%M(%L),  %msg%n"/>
 			<SizeBasedTriggeringPolicy size="10MB"/>
 		</RollingFile>
 	</appenders>

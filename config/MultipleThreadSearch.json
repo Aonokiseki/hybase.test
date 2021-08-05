@@ -1,0 +1,15 @@
+{
+    "hosts" : "http://192.168.101.232:5555",
+    "user" : "admin",
+    "password" : "trsadmin",
+    "databases" : "system.xinwen20210804",
+    "start" : 0,
+    "num" : 10,
+    "searchParams" : {
+        "SORTMETHOD" : "RELEVANCE"
+    },
+    "queryPath" : "./data/Stability/xinwen_SearchExpression.txt",
+    "queryFileEncoding" : "utf-8",
+    "threadPoolCoreSize" : 4,
+    "queryQueueSize" : 128
+}

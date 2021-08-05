@@ -15,6 +15,9 @@ public class GlobalSetting {
 	@Autowired
 	@Value("${cluster.engine.type}")
 	private String engineType;
+	@Autowired
+	@Value("${delete.db.finally}")
+	private boolean deleteDbFinally;
 	
 	public long sleepTimeMillis() {
 		return sleepTimeMillis;
@@ -24,5 +27,8 @@ public class GlobalSetting {
 	}
 	public String engineType() {
 		return engineType;
+	}
+	public boolean deleteDbFinally() {
+		return deleteDbFinally;
 	}
 }

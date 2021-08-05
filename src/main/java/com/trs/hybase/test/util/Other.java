@@ -9,8 +9,10 @@ import java.net.SocketException;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.filechooser.FileSystemView;
 
@@ -50,7 +52,7 @@ public final class Other {
      * @param left
      * @param right
      */
-    public static void sequenceInverSion(double[] array, int left, int right){
+    public static void sequenceInversion(double[] array, int left, int right){
     	if(left < 0 || right > array.length-1 || left >= right)
     		return;
     	int i = left;
@@ -327,4 +329,29 @@ public final class Other {
     	}
     	return result;
     }
+	/**
+	 * 将数组的元素拼接为字符串
+	 * @param array
+	 * @param splitSymbol 
+	 * @return
+	 */
+	public static String arrayToString(String[] array, String splitSymbol) {
+		StringBuilder sb = new StringBuilder();
+		for(String element : array)
+			sb.append(element).append(splitSymbol);
+		return sb.toString();
+	}
+	/**
+	 * 将数组元素放入Set中, 自动去重
+	 * @param array
+	 * @return
+	 */
+	public static Set<String> arrayToSet(String[] array){
+		Set<String> set = new HashSet<String>();
+		if(array == null || array.length == 0)
+			return set;
+		for(String element : array)
+			set.add(element);
+		return set;
+	}
 }

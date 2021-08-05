@@ -25,11 +25,13 @@ public class QueryClient extends AbstractJavaSamplerClient{
 	private String dbName;
 	private String searchWord;
 	private String searchSyntaxName;
+	private String searchTimeOut;
 	private SearchParams sp;
 	private TRSResultSet resultSet;
 		
 	public Arguments getDefaultParameters() {
 		Arguments params = new Arguments();
+		params.addArgument("search.time.out", "120");
 		params.addArgument("search.syntax.name", "hybase");
 		params.addArgument("host", "http://127.0.0.1:5555");
 		params.addArgument("dbname", "system.demo");
@@ -48,9 +50,13 @@ public class QueryClient extends AbstractJavaSamplerClient{
 		dbName = context.getParameter("dbname");
 		searchWord = context.getParameter("searchword");
 		searchSyntaxName = context.getParameter("search.syntax.name");
+		searchTimeOut = context.getParameter("search.time.out");
 		sp = new SearchParams();
-		if(searchSyntaxName != null) 
+		if(searchSyntaxName != null && !searchSyntaxName.isEmpty())
 			sp.setProperty("search.syntax.name", searchSyntaxName);
+		if(searchTimeOut != null && !searchTimeOut.isEmpty())
+			sp.setTimeOut(Integer.valueOf(searchTimeOut));
+		
 	}
 	
 	@Override
@@ -72,8 +78,8 @@ public class QueryClient extends AbstractJavaSamplerClient{
 			result.setResponseData(errorLog, "utf-8");
 		} finally {
 			conn.close();
+			result.sampleEnd();
 		}
-		result.sampleEnd();
 		return result;
 	}
 	

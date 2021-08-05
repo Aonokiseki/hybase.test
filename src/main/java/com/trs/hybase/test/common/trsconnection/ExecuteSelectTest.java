@@ -3,15 +3,11 @@ package com.trs.hybase.test.common.trsconnection;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +16,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.trs.hybase.client.APIVersion;
@@ -36,10 +31,10 @@ import com.trs.hybase.test.bean.Configurer;
 import com.trs.hybase.test.bean.Constants;
 import com.trs.hybase.test.bean.GlobalSetting;
 import com.trs.hybase.test.util.Other;
+import com.trs.hybase.test.util.Tools;
 
 public class ExecuteSelectTest {
 	private final static Logger logger = LogManager.getLogger(ExecuteSelectTest.class);
-	private final static Gson GSON = new Gson();
 	private TRSConnection conn;
 	private GlobalSetting globalSetting;
 	
@@ -59,7 +54,7 @@ public class ExecuteSelectTest {
 			return null;
 		
 		return new Object[][] {
-			new Object[] {1, "这是用例说明", 0, TRSDatabase.DBPOLICY.NORMAL, "版次:*", "版次", new String[] {"4", "3", "2", "1"}},
+			new Object[] {1, "验证executeInsert()有效", 0, TRSDatabase.DBPOLICY.NORMAL, "版次:*", "版次", new String[] {"4", "3", "2", "1"}},
 		};
 	}
 	/**
@@ -83,10 +78,8 @@ public class ExecuteSelectTest {
 			db.setName(dbName);
 			conn.createDatabase(db);
 			/* 记录入库 */
-			@SuppressWarnings("unchecked")
-			List<Map<String,String>> jsons = GSON.fromJson(new InputStreamReader(
-					new FileInputStream("./data/TRSConnection/executeInsert.json"), "UTF-8"),  java.util.List.class);
-			List<TRSInputRecord> inputRecords = preparingSimpleDataForInsertion(jsons);
+			List<Map<String,String>> json = Tools.transferJsonToList("./data/TRSConnection/executeInsert.json", "utf-8");
+			List<TRSInputRecord> inputRecords = Tools.transferDataToTRSInputRecords(json);
 		    conn.executeInsert(dbName, inputRecords);
 		    Constants.sleep(globalSetting.sleepTimeMillis());
 		    /* 检索 */
@@ -104,22 +97,12 @@ public class ExecuteSelectTest {
 			logger.error(failureLog);
 			fail(failureLog);
 		}finally {
-			try {
-				conn.deleteDatabase(dbName);
-			}catch(TRSException e) {}
+			if(globalSetting.deleteDbFinally()) {
+				try {
+					conn.deleteDatabase(dbName);
+				}catch(TRSException e) {}
+			}
 		}
-	}
-	
-	private static List<TRSInputRecord> preparingSimpleDataForInsertion(List<Map<String, String>> testdatas) throws TRSException{
-		List<TRSInputRecord> inputRecords = new ArrayList<TRSInputRecord>(testdatas.size());
-		TRSInputRecord inputRecord = null;
-		for(int i=0, size=testdatas.size(); i<size; i++) {
-			inputRecord = new TRSInputRecord();
-			for(Entry<String,String> data : testdatas.get(i).entrySet())
-				inputRecord.addColumn(data.getKey(), data.getValue());
-			inputRecords.add(inputRecord);
-		}
-		return inputRecords;
 	}
 	/**
 	 * 检索并断言结果
@@ -131,13 +114,15 @@ public class ExecuteSelectTest {
 	 * @param expectation
 	 * @throws TRSException
 	 */
-	private static void queryChecking(TRSConnection conn, String dbName, String query, SearchParams sp, String chekcingColumn, String[] expectation) throws TRSException {
+	private static void queryChecking(TRSConnection conn, String dbName, String query, SearchParams sp, String checkingColumn, String[] expectation) throws TRSException {
 		TRSResultSet resultSet = conn.executeSelect(dbName, query, 0, 10, sp);
 		assertEquals(resultSet.getNumFound(), expectation.length);
 		TRSRecord record = null;
 		for(int i=0; i<resultSet.size(); i++) {
 			record = resultSet.get();
-			assertEquals(record.getString(chekcingColumn), expectation[i]);
+			logger.debug(String.format("record.getString(%s)=%s, expectation[%d]=%s", 
+					checkingColumn, record.getString(checkingColumn), i, expectation[i]));
+			assertEquals(record.getString(checkingColumn), expectation[i]);
 			resultSet.moveNext();
 		}
 	}
