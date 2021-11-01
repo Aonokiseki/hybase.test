@@ -23,7 +23,9 @@ import com.trs.hybase.test.util.FileOperator;
 @Configuration
 @EnableAspectJAutoProxy(proxyTargetClass=true)
 @ComponentScan(basePackageClasses = {
-		com.trs.hybase.test.multiple.Statistic.class
+		com.trs.hybase.test.multiple.Statistic.class,
+		com.trs.hybase.test.multiple.StatisticWriter.class,
+		com.trs.hybase.test.multiple.Log.class
 })
 @PropertySource("file:./config/config.ini")
 @EnableScheduling

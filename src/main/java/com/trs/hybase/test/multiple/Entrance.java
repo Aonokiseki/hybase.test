@@ -27,10 +27,20 @@ public class Entrance {
 		ThreadPoolExecutor selectionPool = (ThreadPoolExecutor) context.getBean("selectionPool");
 		/* 提交检索请求 */
 		while(true) {
-			if(selectionPool.getActiveCount() > setting.getThreadPoolCoreSize() || selectionPool.getQueue().size() > 0)
+			if(selectionPool.getActiveCount() > setting.getThreadPoolCoreSize() || selectionPool.getQueue().size() > 0) {
+				sleep();
 				continue;
+			}
 			selectionPool.submit(new ExecuteSelectTask(setting.getHosts(), 
 					setting.getDatabases(), queriesQueue, setting.getSearchParams(), statistic));
+		}
+	}
+	
+	private static void sleep() {
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 }

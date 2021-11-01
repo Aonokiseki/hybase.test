@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
-
 import com.google.gson.Gson;
 import com.trs.hybase.client.TRSConnection;
 import com.trs.hybase.client.TRSException;
@@ -18,6 +17,9 @@ import com.trs.hybase.client.params.ConnectParams;
 public class CustomExport {
 	
 	public static void main(String[] args) {
+		
+//		args = new String[] {"http://192.168.105.190:5555", "origin.xinwen", "C:/Users/trs/Desktop/output/xinwen.trs", "100", "0", "10128800"};
+		
 		String host = args[0]; String databaseName = args[1];
 		String outputDirectoryPath = args[2]; int recordCountPerFile = Integer.valueOf(args[3]);
 		int start = Integer.valueOf(args[4]); int number = Integer.valueOf(args[5]);
@@ -26,6 +28,7 @@ public class CustomExport {
 		ExportToJson etj = new ExportToJson(outputDirectoryPath, recordCountPerFile);
 		TRSExport export = new TRSExport(conn, etj);
 		try {
+			System.out.println(String.format("export.export(%s, %d, %d)", databaseName, start, number));
 			export.export(databaseName, start, number);
 		} catch (TRSException e) {
 			e.printStackTrace();

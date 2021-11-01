@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -15,9 +17,18 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
-
+/**
+ * 简单的远程Shell类<br><br>
+ * 
+ * 部分接口可能需要读取服务器上的图片或文件, 或结果在服务器上生成, 不方便加入自动化测试.<br>
+ * 有了这个类就可以调用简单的linux命令, 或上传/下载文件<br>
+ * 
+ * 只有最基本的发送命令, 上传/下载单个文件, 不要试图用这个类取代shell工具.
+ */
 public class FakeShell {
+	
 	private final static JSch JSCH = new JSch();
+	private final static String DEFAULT_ENCODING = "utf-8";
 	private final static String FILE_SEPARATOR = "/";
 	private String host;
 	private int port;
@@ -42,27 +53,37 @@ public class FakeShell {
 		session.connect();
 	}
 	/**
-	 * 执行一条远程命令<br>
-	 * 例如 <code>mv a.jpg b.jpg</code>
-	 * @param command
+	 * 发送远程命令
+	 * @param command 命令, 多条命令参考shell写法, 如<code>cd /home/user; touch /home/user/a.txt</code>
+	 * @param encoding
 	 * @return
 	 * @throws JSchException
 	 * @throws IOException
 	 */
-	public String executeCommand(String command) throws JSchException, IOException {
+	public String executeCommand(String command, String encoding) throws JSchException, IOException {
 		if(command == null || command.isEmpty())
 			throw new NullPointerException("[command] is null or empty.");
-		Channel channel = session.openChannel("exec");
+		if(encoding == null || encoding.isEmpty())
+			encoding = DEFAULT_ENCODING;
+		String result = "";
+		Charset charset = Charset.forName(encoding);
+		Channel channel = session.openChannel("exec"); 
 		ChannelExec channelExec = (ChannelExec) channel;
 		channelExec.setCommand(command);
-		channelExec.setInputStream(null);
 		channelExec.connect();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(channelExec.getInputStream()));
-		String line;
+		result = recording(channelExec.getInputStream(), charset);
+		channelExec.disconnect();
+		return result;
+	}
+	private static String recording(InputStream in, Charset charset) throws IOException {
+		if(in == null || in.available() != 0)
+			return "";
 		StringBuilder result = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in, charset));
+		String line = null;
 		while((line = reader.readLine()) != null)
 			result.append(line).append(System.lineSeparator());
-		channelExec.disconnect();
+		reader.close();
 		return result.toString();
 	}
 	/**
@@ -115,5 +136,21 @@ public class FakeShell {
 		if(session == null || !session.isConnected())
 			return;
 		session.disconnect();
+	}
+	
+	public static void main(String[] args) {
+		FakeShell fShell = new FakeShell("192.168.51.166", 22, "root", "Trsadmin123.");
+		try {
+			fShell.connect();
+			fShell.upload("/data/lhy/qatest", "C:/Users/trs/Desktop/DL-VRS-Data/BTV.jpg");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (JSchException e) {
+			e.printStackTrace();
+		} catch (SftpException e) {
+			e.printStackTrace();
+		} finally {
+			fShell.disconnect();
+		}
 	}
 }

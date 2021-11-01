@@ -65,6 +65,7 @@ public class ExecuteSelectTask implements Runnable{
 			logger.error(errorLog);
 			statistic.addFailureCount();
 			statistic.updateExceptionCategory(e);
+			statistic.updateExceptionInfos(e);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally {

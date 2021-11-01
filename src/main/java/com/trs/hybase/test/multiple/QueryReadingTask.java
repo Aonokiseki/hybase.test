@@ -12,6 +12,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 
+import com.trs.hybase.test.util.Other;
+
 @Scope("singleton")
 public class QueryReadingTask implements Runnable{
 	private final static Logger logger = LogManager.getLogger(QueryReadingTask.class);
@@ -38,11 +40,12 @@ public class QueryReadingTask implements Runnable{
 				while((currentLine = reader.readLine()) != null)
 					queries.appendTail(currentLine);
 			}catch(IOException | InterruptedException e) {
-				logger.error(e.toString());
+				String exceptionLog = String.format("%s%s%s", 
+						e.getMessage(), System.lineSeparator(), Other.stackTraceToString(e));
+				logger.error(exceptionLog);
 			}finally {
 				files.add(current);
 			}
 		}
 	}
-
 }
